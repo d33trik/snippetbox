@@ -1,0 +1,10 @@
+{
+	"scripts": {
+		"format:check": "prettier --check .",
+		"format:write": "prettier --write ."
+	},
+	"devDependencies": {
+		"prettier": "^3.8.1",
+		"prettier-plugin-go-template": "^0.0.15"
+	}
+}
