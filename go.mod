@@ -1,4 +1,4 @@
-module github.com/d33trik/snippetbox
+module codeberg.org/d33trik/snippetbox
 
 go 1.26.1
 

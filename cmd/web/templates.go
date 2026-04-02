@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/d33trik/snippetbox/internal/models"
+	"codeberg.org/d33trik/snippetbox/internal/models"
 )
 
 type templateData struct {
