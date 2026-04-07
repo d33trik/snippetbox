@@ -4,7 +4,7 @@ CREATE DATABASE snippetbox CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- Switch to using the snippetbox database.
 USE snippetbox;
 
--- Create a snippets table.
+-- Create the snippets table.
 CREATE TABLE snippets (
 	id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	title VARCHAR(100) NOT NULL,
@@ -13,7 +13,6 @@ CREATE TABLE snippets (
 	expires DATETIME NOT NULL
 );
 
--- Add an index on the created column.
 CREATE INDEX idx_snippets_created ON snippets(created);
 
 -- Add some dummy records
@@ -38,7 +37,16 @@ INSERT INTO snippets (title, content, created, expires) VALUES (
 	DATE_ADD(UTC_TIMESTAMP(), INTERVAL 7 DAY)
 );
 
--- Create the web user
+-- Create the sessions table.
+CREATE TABLE sessions (
+	token CHAR(43) PRIMARY KEY,
+	data BLOB NOT NULL,
+	expiry TIMESTAMP(6) NOT NULL
+);
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
+-- Create the web user.
 CREATE USER 'web'@'%' IDENTIFIED BY 'pass';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web'@'%';
 FLUSH PRIVILEGES;
