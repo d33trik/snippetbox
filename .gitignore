@@ -22,6 +22,9 @@ profile.cov
 # vendor/
 node_modules/
 
+# Other directories
+tls/
+
 # Go workspace file
 go.work
 go.work.sum
