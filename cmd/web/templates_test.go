@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"codeberg.org/d33trik/snippetbox/internal/assert"
 )
 
 func TestHumanDate(t *testing.T) {
@@ -28,9 +30,7 @@ func TestHumanDate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got := humanDate(tc.input)
 
-			if got != tc.want {
-				t.Errorf("got %q; want %q", got, tc.want)
-			}
+			assert.Equal(t, got, tc.want)
 		})
 	}
 }
