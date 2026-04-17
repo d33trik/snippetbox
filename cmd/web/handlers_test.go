@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"codeberg.org/d33trik/snippetbox/internal/assert"
@@ -43,4 +44,53 @@ func TestHealthCheckE2E(t *testing.T) {
 	res := ts.get(t, "/healthcheck")
 	assert.Equal(t, res.status, http.StatusOK)
 	assert.Equal(t, res.body, "OK")
+}
+
+func TestSnippetViewE2E(t *testing.T) {
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	tests := map[string]struct {
+		urlPath    string
+		wantStatus int
+		wantBody   string
+	}{
+		"Valid ID": {
+			urlPath:    "/snippet/view/1",
+			wantStatus: http.StatusOK,
+			wantBody:   "An old silent pond...",
+		},
+		"Non-existent ID": {
+			urlPath:    "/snippet/view/2",
+			wantStatus: http.StatusNotFound,
+		},
+		"Negative ID": {
+			urlPath:    "/snippet/view/-1",
+			wantStatus: http.StatusNotFound,
+		},
+		"Decimal ID": {
+			urlPath:    "/snippet/view/1.23",
+			wantStatus: http.StatusNotFound,
+		},
+		"String ID": {
+			urlPath:    "/snippet/view/foo",
+			wantStatus: http.StatusNotFound,
+		},
+		"Empty ID": {
+			urlPath:    "/snippet/view/",
+			wantStatus: http.StatusNotFound,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ts.resetClientCookieJar(t)
+
+			res := ts.get(t, tc.urlPath)
+			assert.Equal(t, res.status, tc.wantStatus)
+			assert.True(t, strings.Contains(res.body, tc.wantBody))
+		})
+	}
 }
