@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -91,6 +92,113 @@ func TestSnippetViewE2E(t *testing.T) {
 			res := ts.get(t, tc.urlPath)
 			assert.Equal(t, res.status, tc.wantStatus)
 			assert.True(t, strings.Contains(res.body, tc.wantBody))
+		})
+	}
+}
+
+func TestUserSignupE2E(t *testing.T) {
+	const (
+		validName     = "Bob"
+		validPassword = "validPa$$word"
+		validEmail    = "bob@test.com"
+		formTag       = `<form action="/user/save" method="POST" novalidate>`
+	)
+
+	tests := map[string]struct {
+		userName           string
+		userEmail          string
+		userPassword       string
+		userValidCSRFToken bool
+		wantStatus         int
+		wantFormTag        string
+	}{
+		"Valid submission": {
+			userName:           validName,
+			userEmail:          validEmail,
+			userPassword:       validPassword,
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusSeeOther,
+		},
+		"Invalid CSRF Token": {
+			userName:           validName,
+			userEmail:          validEmail,
+			userPassword:       validPassword,
+			userValidCSRFToken: false,
+			wantStatus:         http.StatusBadRequest,
+		},
+		"Empty name": {
+			userName:           "",
+			userEmail:          validEmail,
+			userPassword:       validPassword,
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+		"Empty email": {
+			userName:           validName,
+			userEmail:          "",
+			userPassword:       validPassword,
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+		"Empty password": {
+			userName:           validName,
+			userEmail:          validEmail,
+			userPassword:       "",
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+		"Invalid email": {
+			userName:           validName,
+			userEmail:          "bob@test.",
+			userPassword:       validPassword,
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+		"Short password": {
+			userName:           validName,
+			userEmail:          validEmail,
+			userPassword:       "pa$$",
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+		"Duplicate email": {
+			userName:           validName,
+			userEmail:          "dupe@example.com",
+			userPassword:       validPassword,
+			userValidCSRFToken: true,
+			wantStatus:         http.StatusUnprocessableEntity,
+			wantFormTag:        formTag,
+		},
+	}
+
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ts.resetClientCookieJar(t)
+
+			res := ts.get(t, "/user/signup")
+
+			form := url.Values{}
+			form.Add("name", tc.userName)
+			form.Add("email", tc.userEmail)
+			form.Add("password", tc.userPassword)
+			if tc.userValidCSRFToken {
+				form.Add("csrf_token", extractCSRFToken(t, res.body))
+			}
+
+			res = ts.postForm(t, "/user/save", form)
+
+			assert.Equal(t, res.status, tc.wantStatus)
+			assert.True(t, strings.Contains(res.body, tc.wantFormTag))
 		})
 	}
 }
