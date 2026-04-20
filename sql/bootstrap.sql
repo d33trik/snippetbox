@@ -61,3 +61,11 @@ ALTER TABLE users ADD CONSTRAINT users_uc_email UNIQUE (email);
 CREATE USER 'web'@'%' IDENTIFIED BY 'pass';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web'@'%';
 FLUSH PRIVILEGES;
+
+-- Create a new UTF-8 test_snippetbox database.
+CREATE DATABASE test_snippetbox CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the test_web user.
+CREATE USER 'test_web'@'%' IDENTIFIED BY 'pass';
+GRANT CREATE, DROP, ALTER, INDEX, SELECT, INSERT, UPDATE, DELETE ON test_snippetbox.* TO 'test_web'@'%';
+FLUSH PRIVILEGES;
