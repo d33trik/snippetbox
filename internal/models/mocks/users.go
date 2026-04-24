@@ -1,6 +1,10 @@
 package mocks
 
-import "codeberg.org/d33trik/snippetbox/internal/models"
+import (
+	"time"
+
+	"codeberg.org/d33trik/snippetbox/internal/models"
+)
 
 type UserModel struct{}
 
@@ -11,6 +15,21 @@ func (m *UserModel) Insert(name, email, password string) error {
 	default:
 		return nil
 	}
+}
+
+func (m *UserModel) Get(id int) (models.User, error) {
+	if id == 1 {
+		u := models.User{
+			ID:      1,
+			Name:    "Alice",
+			Email:   "alice@exemple.com",
+			Created: time.Now(),
+		}
+
+		return u, nil
+	}
+
+	return models.User{}, models.ErrNoRecord
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {

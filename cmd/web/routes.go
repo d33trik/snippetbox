@@ -20,6 +20,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /{$}", dynamic.ThenFunc(app.home))
 	mux.Handle("GET /about", dynamic.ThenFunc(app.about))
 
+	mux.Handle("GET /account/view", protected.ThenFunc(app.accountView))
+
 	mux.Handle("GET /snippet/view/{id}", dynamic.ThenFunc(app.snippetView))
 	mux.Handle("GET /snippet/create", protected.ThenFunc(app.snippetCreate))
 	mux.Handle("POST /snippet/save", protected.ThenFunc(app.snippetSave))
